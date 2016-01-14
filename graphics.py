@@ -61,9 +61,9 @@ def draw_nodes(canvas, graph, layout, node_width, node_height):
                                layout[graph[k].edges[e]][1] + node_height / 2])
 
     for i in layout:
-        oid = canvas.create_oval(layout[i], fill=graph[i].color, activefill="red")
-        canvas.create_text(layout[i][2], layout[i][3], text=str(graph[i]))
-
+         oid = canvas.create_oval(layout[i], fill=graph[i].color, activefill="red")
+    #     canvas.create_text(layout[i][2], layout[i][3], text=str(graph[i]))
+ 
 
 def draw_units(canvas, graph, layout, node_width, node_height, unit_width, unit_height):
 
