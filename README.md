@@ -64,43 +64,28 @@ These are in no way exhaustive of all possible and useful features and are just 
 There is a **weight** associated with each one of these utilities. I've left these weights at 1 initially, and then played some games
 and regressed features on outcomes to calculate weights. More on this in the results section.
 
-One thing worth noting is how the player works: it simulates the game state after each move and evaluates the features on the simulated state, picking the move that yields the greatest utility.
+One thing worth noting is how the player works: it simulates the game state after each move and evaluates the features on the simulated state, picking the move that yields the greatest utility. If more than 1 move set have max utility, one is picked at random.
 
 ###Some Results
 
 I ran several iterations of games played at random and recorded feature values at each move played by each player. I then stored wether that game resulted in a win or a loss and ran a regression on the result. The dependent variable is a boolean for wether the game was won, the independents are feature weights. Below is a table of computed coefficients/weights. Some make sense, some less. 
 
----------------------------------------------------------------------------
-            &nbsp;               Estimate   Std. Error   z value  Pr(>|z|) 
-------------------------------- ---------- ------------ --------- ---------
-        **node_weight**          -0.4971      0.121      -4.107   4.005e-05
+Coefficient | Estimate | Std. Error  | z value | Pr(>z) 
+---------------|--------------|--------------|-----------|--------
+node_weight | -0.4971 |  0.121  |    -4.107  | 4.005e-05 
+n_enemies_weight | 0.2306  |   0.05859   |   3.936  | 8.27e-05
+enemy_occ_nodes_weight | -1.126  | 0.05936  | -18.97  | 2.943e-80
+enemy_occ_defender_weight | -0.02868   |  0.0222    | -1.292   | 0.1964
+defender_weight | 0.06549  |    0.1357  |   0.4826 |  0.6293
+occ_new_weight |        0.05953 |     0.1923 |    0.3096 |  0.7569
+enemy_occ_attacker_weight  | 0.3953  |  0.02399   |   16.48 |  5.319e-61
+attacker_weight | -0.3131  |    0.2292  |   -1.366 |  0.172
+enemy_unit_weight |     -0.2431  |   0.04761 |    -5.105  | 3.299e-07
+unit_weight |   1.242  |     0.2035  |    6.102 |  1.045e-09
+occ_attacker_weight |    -0.2173  |    0.2334  |   -0.9308  | 0.3519
+occ_defender_weight |   0.4239  |    0.1348  |    3.146  | 0.001658
+empty_node_weight |  -0.7042   |  0.05129  |   -13.73 |  6.851e-43
 
-     **n_enemies_weight**         0.2306     0.05859      3.936   8.27e-05
-
-  **enemy_occ_nodes_weight**      -1.126     0.05936     -18.97   2.943e-80
-
- **enemy_occ_defender_weight**   -0.02868     0.0222     -1.292   0.1964
-
-      **defender_weight**        0.06549      0.1357     0.4826   0.6293
-
-      **occ_new_weight**         0.05953      0.1923     0.3096   0.7569
-
- **enemy_occ_attacker_weight**    0.3953     0.02399      16.48   5.319e-61
-
-      **attacker_weight**        -0.3131      0.2292     -1.366   0.172
-
-     **enemy_unit_weight**       -0.2431     0.04761     -5.105   3.299e-07
-
-        **unit_weight**           1.242       0.2035      6.102   1.045e-09
-
-    **occ_attacker_weight**      -0.2173      0.2334     -0.9308  0.3519
-
-    **occ_defender_weight**       0.4239      0.1348      3.146   0.001658
-
-     **empty_node_weight**       -0.7042     0.05129     -13.73   6.851e-43
-
-        **(Intercept)**            3.1        0.353       8.783   1.592e-18
----------------------------------------------------------------------------
 
 The players in the simulation in test.py are all initialized with these weights. 
 

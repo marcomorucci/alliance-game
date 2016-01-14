@@ -223,6 +223,14 @@ def test_simulation():
 
             
 def test_sh_player():
+
+    weights = {"unit_weight": 1.242, "node_weight": -0.4971, "occ_weight": 0, "occ_new_weight": 0.05953,
+               "n_enemies_weight": 0.2306, "enemy_occ_nodes_weight": -1.126, "enemy_unit_weight": -0.2431,
+               "empty_node_weight": -0.7042, "attacker_weight": -0.3131, "defender_weight": 0.06549,
+               "occ_attacker_weight": -0.2173, "occ_defender_weight": 0.4239, "enemy_occ_attacker_weight": 0.3953,
+               "enemy_occ_defender_weight": -0.02868}
+
+            
     nodes = [GameNode(0, [], [1, 2]),
              GameNode(1, [], [0, 2]),
              GameNode(2, [], [0, 1, 3]),
@@ -230,10 +238,10 @@ def test_sh_player():
              GameNode(4, [], [3, 5]),
              GameNode(5, [], [3, 4])]
 
-    players = [ShortHorizonPlayer(0, [Unit(0, nodes[0])], [nodes[0]], nodes[0]),
-               ShortHorizonPlayer(1, [Unit(1, nodes[1])], [nodes[1]], nodes[1]),
-               ShortHorizonPlayer(2, [Unit(2, nodes[4])], [nodes[4]], nodes[4]),
-               ShortHorizonPlayer(3, [Unit(3, nodes[5])], [nodes[5]], nodes[5])]
+    players = [ShortHorizonPlayer(0, [Unit(0, nodes[0])], [nodes[0]], nodes[0], **weights),
+               ShortHorizonPlayer(1, [Unit(1, nodes[1])], [nodes[1]], nodes[1], **weights),
+               ShortHorizonPlayer(2, [Unit(2, nodes[4])], [nodes[4]], nodes[4], **weights),
+               ShortHorizonPlayer(3, [Unit(3, nodes[5])], [nodes[5]], nodes[5], **weights)]
 
     nodes[0].add_unit(players[0].units[0])
     nodes[1].add_unit(players[1].units[0])
