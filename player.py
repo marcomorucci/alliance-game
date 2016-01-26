@@ -2,6 +2,9 @@ import numpy as np
 from gameGraph import EmptyNode
 from matplotlib.colors import cnames
 from itertools import product
+import Tkinter as tk
+from gamemove import GameMove
+import time
 
 
 class Unit(object):
@@ -12,6 +15,13 @@ class Unit(object):
         self.target = target
         self.color = cnames.values()[player]
         self.id = None
+
+    def on_click(self, *args):
+        """
+        Only implemented by HumanInteractionUnit. It's here just to make the callback
+        universal and to avoid implementing a type check.
+        """
+        pass
         
     def update(self):
         # Needed to make attackers stop attacking empty nodes after they have been conquered.
@@ -25,10 +35,10 @@ class Unit(object):
             
         if self.action == "nothing":
             self.target = EmptyNode()
-
+            
     def __str__(self):
         return "Id: " + str(self.id) + "; Owner: " + str(self.player) + "; " + "Node: " + str(self.node.id) + ", "\
-            "Performing: " + str(self.action) + " on " + str(self.target.id)
+            "Performing:< " + str(self.action) + " on " + str(self.target.id)
         
     def __eq__(self, other):
         if not self.id == other.id:
@@ -43,7 +53,115 @@ class Unit(object):
             return False
         return True
 
+
+class HumanInteractionUnit(Unit):
+    def __init__(self, *args, **kwargs):
+        Unit.__init__(self, *args)
         
+        self.clicked = kwargs.get("clicked", False)
+        self.menu_id = kwargs.get("menu_id", None)
+        self.draw_pos = kwargs.get("draw_pos", None)
+        self.selected_action = {}
+        self.action_selected = False
+        self.position_selected = False
+        self.my_turn = False
+        
+    def on_click(self, ev, uid, canvas, graph):
+
+        if not self.my_turn:
+            return
+
+        if not self.clicked:
+            self.open_menu(canvas, graph)
+            self.clicked = True
+        else:
+            self.close_menu(canvas)
+            self.clicked = False
+
+    def clear_target(self, canvas, graph):
+        for n in self.node.edges + [self.node.id]:
+                canvas.itemconfig("n" + str(n), fill=graph[n].color, activefill="")
+                canvas.tag_unbind("n" + str(n), "<Button 1>")
+                
+        canvas.delete("tgt_sel_txt")
+        canvas.unbind("<Button 1>")
+            
+    def select_action(self, canvas, graph, action):
+        self.close_menu(canvas)
+        self.clicked = False
+        
+        canvas.create_text(self.draw_pos[0] + 20, self.draw_pos[1] - 20,
+                           text="Please choose target node from the ones highlighted",
+                           tag="tgt_sel_txt")
+
+        for n in self.selected_action["destination"].edges:
+            # Exclude all nodes that are either empty or occupied by this player
+            if graph[n].is_empty() or graph[n][0].player == self.player:
+                continue
+            canvas.itemconfig("n" + str(n), fill="blue", activefill="red")
+            canvas.tag_bind("n" + str(n), "<Button 1>",
+                            lambda _: self.save_action(action, graph[n], canvas, graph))
+
+        canvas.bind("<Button 1>", lambda _: self.clear_target(canvas, graph))
+
+    def reset_action(self):
+        self.selected_action["action"] = "nothing"
+        self.selected_action["target"] = EmptyNode()
+        
+    def save_action(self, action, target, canvas, graph):
+        self.selected_action["action"] = action
+        self.selected_action["target"] = target
+        self.clear_target(canvas, graph)
+
+    def select_position(self, canvas, graph):
+        self.close_menu(canvas)
+        self.clicked = False
+        
+        canvas.create_text(self.draw_pos[0] + 20, self.draw_pos[1] - 20,
+                           text="Please choose position node from the ones highlighted",
+                           tag="tgt_sel_txt")
+       
+        for n in self.node.edges + [self.node.id]:
+            # Exclude all nodes that are occupied by another player
+            if not graph[n].is_empty() and graph[n][0].player != self.player:
+                continue
+            canvas.itemconfig("n" + str(n), fill="blue", activefill="red")
+
+            def make_lambda(node):
+                return lambda _: self.save_position(node, canvas, graph)
+                
+            canvas.tag_bind("n" + str(n), "<Button 1>", make_lambda(graph[n]))
+
+        canvas.bind("<Button 1>", lambda _: self.clear_target(canvas, graph))
+        
+    def save_position(self, target, canvas, graph):
+        print target
+        self.selected_action["destination"] = target
+        self.clear_target(canvas, graph)
+        self.reset_action()
+        
+    def open_menu(self, canvas, graph):
+        self.close_menu(canvas)
+        
+        frame = tk.Frame(canvas, bd=2, bg="black", relief="raised")
+        self.menu_id = canvas.create_window(self.draw_pos[0] + 20, self.draw_pos[1],
+                                            window=frame, tag="menu1", anchor=tk.NW)
+        lab = tk.Label(frame, text=self.id, width=12, bd=4)
+        lab.pack()
+        b1 = tk.Button(frame, text="move", bd=0, bg="black", width=10,
+                       command=lambda: self.select_position(canvas, graph))
+        b1.pack()
+        b2 = tk.Button(frame, text="attack", bd=0, bg="black", width=10,
+                       command=lambda: self.select_action(canvas, graph, "attack"))
+        b2.pack()
+        b3 = tk.Button(frame, text="support", bd=0, bg="black", width=10,
+                       command=lambda: self.select_action(canvas, graph, "support"))
+        b3.pack()
+
+    def close_menu(self, canvas):
+        canvas.delete("menu1")
+        
+            
 class EmptyUnit(Unit):
     def __init__(self):
         Unit.__init__(self, 100, EmptyNode(), "nothing", EmptyNode())
@@ -63,7 +181,10 @@ class Player(object):
             if u.id is None:
                 u.id = str("p" + str(self.id) + "u" + str(self.unit_cnt))
             self.unit_cnt += 1
-
+    
+    def generate_unit(self):
+        return Unit(self.id, self.home, "nothing", EmptyNode())
+    
     def add_unit(self, unit):
         if unit.id is None:
             unit.id = str("p" + str(self.id) + "u" + str(self.unit_cnt))
@@ -288,3 +409,51 @@ class ShortHorizonPlayer(Player):
         w["enemy_occ_defender_weight"] = sum(n.n_defending for n in state.graph
                                              if n.owner is not None and n.owner != future_self.id)
         return w
+
+
+class HumanPlayer(Player):
+    def __init__(self, *args, **kwargs):
+        Player.__init__(self, *args)
+        self.canvas = kwargs.get("canvas", None)
+        self.move_completed = tk.BooleanVar()
+        self.move_completed.set(False)
+
+        # TODO: Change the constructor so that players initialize their own units
+        
+    def generate_unit(self):
+        return HumanInteractionUnit(self.id, self.home, "nothing", EmptyNode())
+        
+    def complete_move(self):
+        self.move_completed.set(True)
+
+    def draw_menu(self):
+        self.canvas.delete("move_menu")
+        frame = tk.Frame(self.canvas, bd=2, bg="black", relief="raised")
+        self.canvas.create_window(self.canvas.winfo_width() - 300, 100,
+                                  window=frame, tag="move_menu", anchor=tk.NW)
+        for u in self.units:
+            txt = u.id + "\n" + str(GameMove(**u.selected_action))
+            tk.Label(frame, text=txt).pack()
+         
+            tk.Button(frame, text="Complete Move", width=12,
+                      bd=0, command=self.complete_move).pack()
+
+    def play(self, game):
+        if len(self.units) == 0:
+            return []
+            
+        for u in self.units:
+            u.my_turn = True
+            u.selected_action = {"origin": u.node, "destination": u.node, "unit": u,
+                                 "action": "nothing", "target": EmptyNode()}
+
+        f = tk.Frame()
+        aid = self.canvas.after(30, self.draw_menu)
+        f.wait_variable(self.move_completed)
+
+        self.canvas.after_cancel(aid)
+        self.canvas.delete("move_menu")
+        for u in self.units:
+            u.my_turn = False
+
+        return [GameMove(**u.selected_action) for u in self.units]

@@ -61,7 +61,7 @@ def draw_nodes(canvas, graph, layout, node_width, node_height):
                                layout[graph[k].edges[e]][1] + node_height / 2])
 
     for i in layout:
-         oid = canvas.create_oval(layout[i], fill=graph[i].color, activefill="red")
+         oid = canvas.create_oval(layout[i], fill=graph[i].color, tag="n" + str(graph[i].id))
     #     canvas.create_text(layout[i][2], layout[i][3], text=str(graph[i]))
  
 
@@ -71,22 +71,33 @@ def draw_units(canvas, graph, layout, node_width, node_height, unit_width, unit_
         ul = generate_units_layout(layout[i], len(graph[i]), unit_width,
                                    unit_height, node_width, node_height)
         for u in range(len(graph[i])):
-            canvas.create_oval(ul[u], fill=graph[i][u].color)
+            unit = graph[i][u]
+            tag = str(i) + " " + str(u)
+            u_pos = ul[u]
+            uid = canvas.create_oval(ul[u], fill=unit.color, activefill="red", tags=tag)
             if graph[i][u].action == "attack":
                 canvas.create_line([ul[u][0] + unit_width / 2, ul[u][1] + unit_height / 2,
-                                   (layout[graph[i][u].target.id][0] + node_width / 2) / 2,
-                                   (layout[graph[i][u].target.id][1] + node_height / 2) / 2,
-                                   layout[graph[i][u].target.id][0] + node_width / 2,
-                                   layout[graph[i][u].target.id][1] + node_height / 2],
+                                   (layout[unit.target.id][0] + node_width / 2) / 2,
+                                   (layout[unit.target.id][1] + node_height / 2) / 2,
+                                   layout[unit.target.id][0] + node_width / 2,
+                                   layout[unit.target.id][1] + node_height / 2],
                                    fill="red", smooth=True)
-            elif graph[i][u].action == "support":
+            elif unit.action == "support":
                 canvas.create_line([ul[u][0] + unit_width / 2, ul[u][1] + unit_height / 2,
-                                    (layout[graph[i][u].target.id][0] + node_width / 2) / 2,
-                                    (layout[graph[i][u].target.id][1] + node_height / 2) / 2,
-                                    layout[graph[i][u].target.id][0] + node_width / 2,
-                                    layout[graph[i][u].target.id][1] + node_height / 2],
+                                    (layout[unit.target.id][0] + node_width / 2) / 2,
+                                    (layout[unit.target.id][1] + node_height / 2) / 2,
+                                    layout[unit.target.id][0] + node_width / 2,
+                                    layout[unit.target.id][1] + node_height / 2],
                                    fill="blue", smooth=True)
+            
+            unit.draw_pos = canvas.coords(uid)
 
+            # This is needed because tkinter works in mysterious ways.
+            def make_lambda(unit, uid, canvas, graph):
+                return lambda ev: unit.on_click(ev, uid, canvas, graph)
+                
+            canvas.tag_bind(uid, "<ButtonPress-1>", make_lambda(unit, uid, canvas, graph))
+            
 
 def draw_player_info(master, players):
     for p in players:

@@ -100,3 +100,23 @@ I tried to build this so that new classes of players could more or less be easil
 4. The **Game** class also offers a *simulate* function that returns a simulated game state, useful for expanding the game tree/evaluating moves.
 5. The move list returned by *game.get_legal_moves*(player)* is made up of lists of moves for each unit, these must be combined into a list of possible combination by the player.
 6. In general, the **Game** object holds references to all other objects in the program, making it (supposedly) easy to evaluate whichever features in present or simulated states. 
+
+
+##Human Interaction
+
+###TL,DR: it's broken and unfinished for now.
+
+To launch it do:
+
+	python test.py human
+
+###TODO:
+
+1. Fix board drawing so that it happens after each individual move. Now it only happens after **all** players have moved, which is fine for computer players but not for human ones.
+- The best way of doing this is to create a HumanGame class that inherits from Game and changes some key things to better suit human players.
+2. There is a timing issue with the play fcn for Human Players, It's fixed for the most part, but I can't get get the move summary menu to redraw after each selection. The problem has to do with tkinter's mainloop and waiting for player input in the game before returning the selected move. For now I do this with tkinter's wait_variable() fcn, which seems to work.
+3. Generally make sure that the game behaves as it should given our definitions and the rules. I'm not 100% sure that it does.
+5. Implement move data collection for human players.
+4. There's probably more but this is all I could come up with for now.
+
+The Human Interaction module is structured around 2 classes: HumanPlayer and HumanInteractionUnit. It's fair to say that the heavy lifting is done by the second one. Most of the work is GUI, so there are a lot of tkinter calls in both classes. They communicate with the graphics module in a very clumsy way, which should be refactored to ensure proper encapsulation.

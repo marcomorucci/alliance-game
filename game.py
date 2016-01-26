@@ -1,28 +1,9 @@
 #!/usr/bin/env python
 from player import Unit, EmptyUnit
 from gameGraph import EmptyNode, GameNode, GameGraph
-from copy import deepcopy
 import numpy as np
 from matplotlib.colors import cnames
-
-
-class GameMove(object):
-    def __init__(self, unit=None, origin=None, destination=None, action=None, target=None):
-        self.origin = origin
-        self.destination = destination
-        self.action = action
-        self.target = target
-        self.unit = unit
-
-    def __eq__(self, other):
-        return self.origin.id == other.origin.id and \
-            self.destination.id == other.destination.id and \
-            self.action == other.action and self.target.id == other.target.id
-        
-    def __str__(self):
-        return "origin: node " + str(self.origin.id) + \
-            "; destination: node " + str(self.destination.id) + \
-            "; action: " + self.action + "; target: node " + str(self.target.id)
+from gamemove import GameMove
 
 
 class GameState(object):
@@ -140,7 +121,7 @@ class GameState(object):
                 if DEBUG:
                     print "Building %d units" % n_units
                 for i in range(n_units):
-                    u = Unit(p.id, p.home, "nothing", EmptyNode())
+                    u = p.generate_unit()
                     p.add_unit(u)
                     p.home.add_unit(u)
                     if DEBUG:
