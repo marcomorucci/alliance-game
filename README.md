@@ -110,11 +110,14 @@ To launch it do:
 
 	python test.py human
 
+**N.B.** There is a problem with the move selection. If you shut the window before having clicked on complete move, the interpreter will keep running in the background until you pkill it. 
+
 ###TODO:
 
 1. Fix board drawing so that it happens after each individual move. Now it only happens after **all** players have moved, which is fine for computer players but not for human ones.
 - The best way of doing this is to create a HumanGame class that inherits from Game and changes some key things to better suit human players.
 2. There is a timing issue with the play fcn for Human Players, It's fixed for the most part, but I can't get get the move summary menu to redraw after each selection. The problem has to do with tkinter's mainloop and waiting for player input in the game before returning the selected move. For now I do this with tkinter's wait_variable() fcn, which seems to work.
+ - The other problem is that wait_variable won't exit until you click on complete move in the dialog. This has to change so that it also exits when the main application exits (window closed)
 3. Generally make sure that the game behaves as it should given our definitions and the rules. I'm not 100% sure that it does.
 5. Implement move data collection for human players.
 4. There's probably more but this is all I could come up with for now.
